@@ -6,7 +6,7 @@ services:
 
   - type: web
     name: medbot-server
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install && npm run prisma:generate && npm run build
     startCommand: node dist/index.js
@@ -36,11 +36,6 @@ services:
         value: 'false'
       - key: PORT
         value: '10000'
-      - key: PUBLIC_URL
-        fromService:
-          type: web
-          name: medbot-server
-          property: host
       - key: TRIAL_DAYS
         value: '3'
       - key: SUBSCRIPTION_PRICE_EUR
@@ -56,7 +51,7 @@ services:
 
   - type: worker
     name: medbot-worker
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install && npm run prisma:generate && npm run build
     startCommand: node dist/scheduler/worker.js
