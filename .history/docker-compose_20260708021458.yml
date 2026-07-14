@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medbot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: medbot
+      POSTGRES_PASSWORD: medbot_password
+      POSTGRES_DB: medbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - medbot_pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: medbot_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - medbot_redis_data:/data
+
+volumes:
+  medbot_pg_data:
+  medbot_redis_data:

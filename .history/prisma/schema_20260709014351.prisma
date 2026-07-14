@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CHILD   // тот, кто следит и настраивает (взрослый ребёнок)
+  ELDER   // тот, за кем следят (пожилой родитель), может не иметь Telegram
+  STANDALONE // человек, который пользуется ботом сам за себя
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum ContactChannel {
+  TELEGRAM
+  SMS
+  NONE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  telegramId   String?  @unique
+  phone        String?  @unique
+  name         String
+  role         Role
+  timezone     String   @default("Europe/Berlin")
+  channel      ContactChannel @default(TELEGRAM)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // связи "ребёнок ведёт пожилого родителя"
+  managedElders   FamilyLink[] @relation("ChildLinks")
+  managedByChild  FamilyLink[] @relation("ElderLinks")
+
+  medications     Medication[]   @relation("ElderMedications")
+  appointments    Appointment[]  @relation("ElderAppointments")
+  createdMeds     Medication[]   @relation("CreatedByUser")
+  createdAppts    Appointment[]  @relation("CreatedByUser")
+
+  subscription    Subscription?
+
+  @@index([telegramId])
+  @@index([phone])
+}
+
+model FamilyLink {
+  id          String   @id @default(cuid())
+  childId     String
+  elderId     String
+  createdAt   DateTime @default(now())
+
+  child       User @relation("ChildLinks", fields: [childId], references: [id])
+  elder       User @relation("ElderLinks", fields: [elderId], references: [id])
+
+  @@unique([childId, elderId])
+}
+
+model Medication {
+  id            String   @id @default(cuid())
+  elderId       String
+  createdById   String
+  name          String
+  dosage        String?
+  // cron-выражение расписания, например "0 9,21 * * *" — в 9:00 и 21:00 каждый день
+  cronSchedule  String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  elder         User @relation("ElderMedications", fields: [elderId], references: [id])
+  createdBy     User @relation("CreatedByUser", fields: [createdById], references: [id])
+
+  reminders     ReminderEvent[]
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  elderId       String
+  createdById   String
+  title         String
+  location      String?
+  dateTime      DateTime
+  reminderBeforeMin Int  @default(120) // за сколько минут напомнить
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  elder         User @relation("ElderAppointments", fields: [elderId], references: [id])
+  createdBy     User @relation("CreatedByUser", fields: [createdById], references: [id])
+
+  reminders     ReminderEvent[]
+}
+
+enum ReminderType {
+  MEDICATION
+  APPOINTMENT
+}
+
+model ReminderEvent {
+  id               String   @id @default(cuid())
+  type             ReminderType
+  medicationId     String?
+  appointmentId    String?
+  scheduledFor     DateTime
+  sentAt           DateTime?
+  confirmedAt      DateTime?
+  escalationCount  Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  medication       Medication?  @relation(fields: [medicationId], references: [id])
+  appointment      Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@index([medicationId])
+  @@index([appointmentId])
+}
+
+model Subscription {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  status                SubscriptionStatus @default(TRIALING)
+  trialEndsAt           DateTime
+  currentPeriodEnd      DateTime?
+  lastTelegramChargeId  String?  // telegram_payment_charge_id последнего платежа (нужен для возможного возврата)
+  renewalReminderSent   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User @relation(fields: [userId], references: [id])
+}

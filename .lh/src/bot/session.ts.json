@@ -1,0 +1,22 @@
+{
+    "sourceFile": "src/bot/session.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1783681383205,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1783681390921,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,48 +1,49 @@\n export type ConversationStep =\n-  | \"idle\"\n-  | \"awaiting_elder_name\"\n-  | \"awaiting_elder_phone\"\n-  | \"awaiting_elder_has_telegram\"\n-  | \"awaiting_med_name\"\n-  | \"awaiting_med_dosage\"\n-  | \"awaiting_med_time\"\n-  | \"awaiting_med_duration\"\n-  | \"awaiting_appt_title\"\n-  | \"awaiting_appt_datetime\"\n-  | \"awaiting_appt_location\";\n+  | 'idle'\n+  | 'awaiting_elder_name'\n+  | 'awaiting_elder_phone'\n+  | 'awaiting_elder_has_telegram'\n+  | 'awaiting_med_name'\n+  | 'awaiting_med_dosage'\n+  | 'awaiting_med_time'\n+  | 'awaiting_med_duration'\n+  | 'awaiting_appt_title'\n+  | 'awaiting_appt_datetime'\n+  | 'awaiting_appt_location'\n \n export interface DraftElder {\n-  name?: string;\n-  phone?: string;\n-  hasTelegram?: boolean;\n+  name?: string\n+  phone?: string\n+  hasTelegram?: boolean\n }\n \n export interface DraftMedication {\n-  elderId?: string;\n-  name?: string;\n-  dosage?: string;\n-  times?: string[]; // [\"09:00\", \"21:00\"]\n+  elderId?: string\n+  name?: string\n+  dosage?: string\n+  times?: string[] // [\"09:00\", \"21:00\"]\n+  durationDays?: number // длительность курса в днях; undefined = постоянно\n }\n \n export interface DraftAppointment {\n-  elderId?: string;\n-  title?: string;\n-  location?: string;\n-  dateTimeRaw?: string;\n+  elderId?: string\n+  title?: string\n+  location?: string\n+  dateTimeRaw?: string\n }\n \n export interface SessionData {\n-  step: ConversationStep;\n-  draftElder: DraftElder;\n-  draftMedication: DraftMedication;\n-  draftAppointment: DraftAppointment;\n+  step: ConversationStep\n+  draftElder: DraftElder\n+  draftMedication: DraftMedication\n+  draftAppointment: DraftAppointment\n }\n \n export function initialSession(): SessionData {\n   return {\n-    step: \"idle\",\n+    step: 'idle',\n     draftElder: {},\n     draftMedication: {},\n     draftAppointment: {},\n-  };\n+  }\n }\n"
+                }
+            ],
+            "date": 1783681383205,
+            "name": "Commit-0",
+            "content": "export type ConversationStep =\n  | \"idle\"\n  | \"awaiting_elder_name\"\n  | \"awaiting_elder_phone\"\n  | \"awaiting_elder_has_telegram\"\n  | \"awaiting_med_name\"\n  | \"awaiting_med_dosage\"\n  | \"awaiting_med_time\"\n  | \"awaiting_med_duration\"\n  | \"awaiting_appt_title\"\n  | \"awaiting_appt_datetime\"\n  | \"awaiting_appt_location\";\n\nexport interface DraftElder {\n  name?: string;\n  phone?: string;\n  hasTelegram?: boolean;\n}\n\nexport interface DraftMedication {\n  elderId?: string;\n  name?: string;\n  dosage?: string;\n  times?: string[]; // [\"09:00\", \"21:00\"]\n}\n\nexport interface DraftAppointment {\n  elderId?: string;\n  title?: string;\n  location?: string;\n  dateTimeRaw?: string;\n}\n\nexport interface SessionData {\n  step: ConversationStep;\n  draftElder: DraftElder;\n  draftMedication: DraftMedication;\n  draftAppointment: DraftAppointment;\n}\n\nexport function initialSession(): SessionData {\n  return {\n    step: \"idle\",\n    draftElder: {},\n    draftMedication: {},\n    draftAppointment: {},\n  };\n}\n"
+        }
+    ]
+}

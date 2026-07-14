@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/server.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1783674046372,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1783674046372,
+            "name": "Commit-0",
+            "content": "import express from \"express\";\nimport { isConfirmationText } from \"./services/smsService\";\nimport { confirmLatestPendingReminderByPhone } from \"./services/reminderService\";\n\n/**\n * HTTP-сервер нужен только для вебхука Twilio (входящие SMS-подтверждения от пожилых\n * родителей без Telegram). Оплата подписки теперь идёт через нативные инвойсы Telegram\n * (LiqPay как provider_token) и не требует публичного домена вообще.\n */\nexport function createServer() {\n  const app = express();\n\n  app.use(express.urlencoded({ extended: false }));\n  app.use(express.json());\n\n  // Twilio присылает входящие SMS сюда (нужно настроить в консоли Twilio: Messaging → Webhook)\n  app.post(\"/webhooks/twilio/sms\", async (req, res) => {\n    const from = req.body.From as string | undefined;\n    const body = (req.body.Body as string | undefined) || \"\";\n\n    // [DEBUG] вебхук не проверяет X-Twilio-Signature -> любой, знающий URL, может подделать подтверждение\n    console.log(\n      `[DEBUG twilio webhook] From=${from} Body=\"${body}\"; ВНИМАНИЕ: проверка X-Twilio-Signature НЕ выполняется`\n    );\n\n    if (from && isConfirmationText(body)) {\n      const confirmed = await confirmLatestPendingReminderByPhone(from);\n      console.log(`[twilio webhook] SMS от ${from}: \"${body}\" → подтверждено: ${confirmed}`);\n    }\n\n    res.set(\"Content-Type\", \"text/xml\");\n    res.send(\"<Response></Response>\");\n  });\n\n  app.get(\"/health\", (_req, res) => res.json({ status: \"ok\" }));\n\n  return app;\n}\n"
+        }
+    ]
+}

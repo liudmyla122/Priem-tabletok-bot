@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/bot/commands/accessibility.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1783681852031,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1783681852031,
+            "name": "Commit-0",
+            "content": "import type { MyContext } from '../instance'\nimport { InlineKeyboard } from '../instance'\nimport { prisma } from '../../db/client'\nimport { AccessibilityMode } from '@prisma/client'\n\nconst MODE_LABELS: Record<AccessibilityMode, string> = {\n  [AccessibilityMode.NONE]: 'Обычный режим',\n  [AccessibilityMode.BLIND]: 'Незрячий (голосовые уведомления)',\n  [AccessibilityMode.DEAF]: 'Глухой/слабослышащий (визуально-акцентные)',\n}\n\n/** Команда /accessibility — выбор режима доступности */\nexport async function accessibilityCommand(ctx: MyContext) {\n  if (!ctx.from) return\n  const user = await prisma.user.findUnique({ where: { telegramId: String(ctx.from.id) } })\n  if (!user) {\n    await ctx.reply('Сначала выполни /start')\n    return\n  }\n\n  const keyboard = new InlineKeyboard()\n  keyboard\n    .text('👁 Обычный', 'access_mode_' + AccessibilityMode.NONE)\n    .row()\n    .text('🗣 Незрячий (голос)', 'access_mode_' + AccessibilityMode.BLIND)\n    .row()\n    .text('👁‍🗨 Глухой (визуально)', 'access_mode_' + AccessibilityMode.DEAF)\n    .row()\n\n  const current = MODE_LABELS[user.accessibilityMode]\n  await ctx.reply(\n    `Текущий режим доступности: ${current}.\\n\\n` +\n      `Выбери подходящий:\\n` +\n      `• Обычный — текст и кнопки.\\n` +\n      `• Незрячий — напоминания дублируются голосом, подтвердить приём можно голосовым сообщением.\\n` +\n      `• Глухой — акцент на визуальное (текст/анимация), без звука.`,\n    { reply_markup: keyboard }\n  )\n}\n\n/** Обработка выбора режима доступности */\nexport async function handleAccessibilityMode(ctx: MyContext) {\n  const match = ctx.callbackQuery?.data?.match(/^access_mode_(.+)$/)\n  if (!match) return\n  const mode = match[1] as AccessibilityMode\n  if (!Object.values(AccessibilityMode).includes(mode)) return\n\n  if (!ctx.from) return\n  const user = await prisma.user.findUnique({ where: { telegramId: String(ctx.from.id) } })\n  if (!user) return\n\n  await prisma.user.update({ where: { id: user.id }, data: { accessibilityMode: mode } })\n  await ctx.answerCallbackQuery()\n  await ctx.editMessageReplyMarkup(undefined)\n  await ctx.reply(`✅ Режим доступности установлен: ${MODE_LABELS[mode]}.`)\n}\n"
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "med-reminder-bot",
+  "version": "1.0.0",
+  "description": "Telegram-микросервис для напоминаний о приёме лекарств и визитах к врачу для пожилых людей и их родственников",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "worker": "tsx watch src/scheduler/worker.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "bullmq": "^5.12.0",
+    "cron-parser": "^4.9.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "grammy": "^1.28.0",
+    "ioredis": "^5.4.1",
+    "luxon": "^3.5.0",
+    "twilio": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^20.14.9",
+    "prisma": "^5.20.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

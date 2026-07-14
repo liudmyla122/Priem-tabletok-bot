@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Med Reminder Bot EC2 Instance Stack
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: [t2.micro, t3.micro, t2.small, t3.small]
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+Mappings:
+  AWSInstanceType2Arch:
+    t2.micro:
+      Arch: HVM64
+    t3.micro:
+      Arch: HVM64
+    t2.small:
+      Arch: HVM64
+    t3.small:
+      Arch: HVM64
+
+  AWSRegionArch2AMI:
+    us-east-1:
+      HVM64: ami-04a81a99f5ec58529  # Ubuntu Server 24.04 LTS
+    us-east-2:
+      HVM64: ami-05c223b1728430748
+    us-west-1:
+      HVM64: ami-057769ffb650e85d8
+    us-west-2:
+      HVM64: ami-0e83014e8f6f31c37
+    eu-west-1:
+      HVM64: ami-04e6022b0055ba516
+    eu-west-2:
+      HVM64: ami-0b33d318cd7c157eb
+    eu-central-1:
+      HVM64: ami-0382309802e961577
+
+Resources:
+  MedBotEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref 'InstanceType'
+      SecurityGroups: [!Ref 'MedBotSecurityGroup']
+      KeyName: !Ref 'KeyName'
+      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref 'InstanceType', Arch]]
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          set -e
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          echo "=== Starting EC2 User Data setup ==="
+          apt update && apt upgrade -y
+          apt install git -y
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt install nodejs -y
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sh get-docker.sh
+          usermod -aG docker ubuntu
+          systemctl start docker
+          systemctl enable docker
+          npm install -g pm2
+          echo "=== EC2 User Data setup complete! ==="
+      Tags:
+        - Key: Name
+          Value: Med-Reminder-Bot-Server
+
+  MedBotSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access and HTTP access on the inbound port
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref 'SSHLocation'
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0  # For Twilio webhook (optional)
+
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref 'MedBotEC2Instance'
+  PublicDNS:
+    Description: Public DNSName of the newly created EC2 instance
+    Value: !GetAtt [MedBotEC2Instance, PublicDnsName]
+  PublicIP:
+    Description: Public IP address of the newly created EC2 instance
+    Value: !GetAtt [MedBotEC2Instance, PublicIp]
+  SSHCommand:
+    Description: Command to SSH into the instance
+    Value: !Sub 'ssh -i ${KeyName}.pem ubuntu@${MedBotEC2Instance.PublicDnsName}'
