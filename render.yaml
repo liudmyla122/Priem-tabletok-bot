@@ -1,14 +1,9 @@
-databases:
-  - name: medbot-db
-    databaseName: medbot
-    user: medbot
-    plan: free
-
-  - name: medbot-redis
+services:
+  - type: redis
+    name: medbot-redis
     ipAllowList: [] # Only allow internal connections
     plan: free
 
-services:
   - type: web
     name: medbot-server
     env: node
@@ -101,3 +96,9 @@ services:
         sync: false
       - key: TTS_VOICE
         sync: false
+
+databases:
+  - name: medbot-db
+    databaseName: medbot
+    user: medbot
+    plan: free
