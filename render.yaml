@@ -8,8 +8,8 @@ services:
     name: medbot-server
     runtime: node
     plan: free
-    buildCommand: npm install && npm run prisma:generate && npm run build
-    startCommand: node dist/index.js
+    buildCommand: npm install && npm run prisma:generate && npm run build && chmod +x start.sh
+    startCommand: ./start.sh
     envVars:
       - key: NODE_ENV
         value: production
@@ -28,35 +28,6 @@ services:
         value: 'false'
       - key: PORT
         value: '10000'
-      - key: TRIAL_DAYS
-        value: '3'
-      - key: SUBSCRIPTION_PRICE_EUR
-        value: '3'
-      - key: SUBSCRIPTION_CURRENCY
-        value: 'EUR'
-
-  - type: worker
-    name: medbot-worker
-    runtime: node
-    plan: free
-    buildCommand: npm install && npm run prisma:generate && npm run build
-    startCommand: node dist/scheduler/worker.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: medbot-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: medbot-redis
-          property: connectionString
-      - key: BOT_TOKEN
-        sync: false
-      - key: BILLING_ENABLED
-        value: 'false'
       - key: TRIAL_DAYS
         value: '3'
       - key: SUBSCRIPTION_PRICE_EUR
