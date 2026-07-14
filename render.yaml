@@ -1,3 +1,13 @@
+databases:
+  - name: medbot-db
+    databaseName: medbot
+    user: medbot
+    plan: free
+
+  - name: medbot-redis
+    ipAllowList: [] # Only allow internal connections
+    plan: free
+
 services:
   - type: web
     name: medbot-server
@@ -14,8 +24,8 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          name: medbot-redis
           type: redis
+          name: medbot-redis
           property: connectionString
       - key: BOT_TOKEN
         sync: false
@@ -64,8 +74,8 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          name: medbot-redis
           type: redis
+          name: medbot-redis
           property: connectionString
       - key: BOT_TOKEN
         sync: false
@@ -91,13 +101,3 @@ services:
         sync: false
       - key: TTS_VOICE
         sync: false
-
-databases:
-  - name: medbot-db
-    databaseName: medbot
-    user: medbot
-    plan: free
-
-  - name: medbot-redis
-    ipAllowList: [] # Only allow internal connections
-    plan: free
