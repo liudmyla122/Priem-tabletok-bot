@@ -1,7 +1,7 @@
 services:
   - type: redis
     name: medbot-redis
-    ipAllowList: [] # Only allow internal connections
+    ipAllowList: []
     plan: free
 
   - type: web
@@ -24,14 +24,6 @@ services:
           property: connectionString
       - key: BOT_TOKEN
         sync: false
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_PHONE_NUMBER
-        sync: false
-      - key: TELEGRAM_LIQPAY_PROVIDER_TOKEN
-        sync: false
       - key: BILLING_ENABLED
         value: 'false'
       - key: PORT
@@ -42,12 +34,6 @@ services:
         value: '3'
       - key: SUBSCRIPTION_CURRENCY
         value: 'EUR'
-      - key: TTS_PROVIDER
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: TTS_VOICE
-        sync: false
 
   - type: worker
     name: medbot-worker
@@ -69,14 +55,6 @@ services:
           property: connectionString
       - key: BOT_TOKEN
         sync: false
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_PHONE_NUMBER
-        sync: false
-      - key: TELEGRAM_LIQPAY_PROVIDER_TOKEN
-        sync: false
       - key: BILLING_ENABLED
         value: 'false'
       - key: TRIAL_DAYS
@@ -85,12 +63,6 @@ services:
         value: '3'
       - key: SUBSCRIPTION_CURRENCY
         value: 'EUR'
-      - key: TTS_PROVIDER
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: TTS_VOICE
-        sync: false
 
 databases:
   - name: medbot-db
