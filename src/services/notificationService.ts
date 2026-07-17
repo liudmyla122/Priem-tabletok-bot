@@ -64,7 +64,7 @@ async function deliverAccessible(opts: DeliverOptions): Promise<number> {
     const msg = await bot.api.sendAnimation(
       opts.telegramId,
       new InputFile(opts.animationFile!),
-      { caption: opts.captionHtml, parse_mode: 'HTML', reply_markup: keyboard }
+      { caption: opts.captionHtml, parse_mode: 'HTML', reply_markup: keyboard },
     )
     return msg.message_id
   }
@@ -78,7 +78,7 @@ async function deliverAccessible(opts: DeliverOptions): Promise<number> {
 
 /** Возвращает строку прогресса курса для события напоминания (HTML и чистый текст) */
 async function progressForEvent(
-  reminderEventId: string
+  reminderEventId: string,
 ): Promise<{ html: string; plain: string }> {
   const event = await prisma.reminderEvent.findUnique({
     where: { id: reminderEventId },
@@ -111,19 +111,23 @@ export async function sendMedicationReminderToTelegram(params: {
   const animation = pickAnimation(MED_ANIMATIONS)
   const progress = await progressForEvent(params.reminderEventId)
   const dosageLine = params.dosage
-    ? `\nДозировка: ${escapeHtml(params.dosage)}`
+    ? `\n💊 <b>Дозировка:</b> ${escapeHtml(params.dosage)}`
+    : ''
+  const progressLine = progress.html
+    ? `\n📅 <b>Прогресс:</b> ${progress.html.replace(/📅 /, '')}`
     : ''
 
   const captionHtml =
-    `💊 <b>Пора принять лекарство!</b>\n\n` +
-    `Название: <b>${escapeHtml(params.medName)}</b>${dosageLine}${
-      progress.html
-    }`
+    `🔔 <b>Напоминание о приёме лекарства!</b>\n\n` +
+    `💊 <b>Название:</b> ${escapeHtml(params.medName)}\n` +
+    dosageLine +
+    progressLine +
+    `\n\nНажмите кнопку ниже, чтобы подтвердить приём!`
   const plainText =
-    `Пора принять лекарство. Название: ${params.medName}.` +
+    `Напоминание о приёме лекарства. Название: ${params.medName}.` +
     (params.dosage ? ` Дозировка: ${params.dosage}.` : '') +
     progress.plain +
-    ` Нажмите кнопку подтверждения.`
+    ` Пожалуйста, подтвердите приём.`
 
   return deliverAccessible({
     telegramId: params.telegramId,
@@ -144,17 +148,19 @@ export async function sendAppointmentReminderToTelegram(params: {
 }): Promise<number> {
   const animation = pickAnimation([APPT_ANIMATION])
   const locationLine = params.location
-    ? `\nГде: ${escapeHtml(params.location)}`
+    ? `\n📍 <b>Место:</b> ${escapeHtml(params.location)}`
     : ''
 
   const captionHtml =
-    `📅 <b>Напоминание о визите!</b>\n\n` +
-    `${escapeHtml(params.title)}\n` +
-    `Когда: ${params.whenText}${locationLine}`
+    `🔔 <b>Напоминание о визите к врачу!</b>\n\n` +
+    `👨‍⚕️ <b>Тип визита:</b> ${escapeHtml(params.title)}\n` +
+    `⏰ <b>Когда:</b> ${params.whenText}` +
+    locationLine +
+    `\n\nНажмите кнопку ниже, чтобы подтвердить!`
   const plainText =
-    `Напоминание о визите. ${params.title}. Когда: ${params.whenText}` +
-    (params.location ? `. Где: ${params.location}` : '') +
-    `. Нажмите кнопку подтверждения.`
+    `Напоминание о визите к врачу. ${params.title}. Когда: ${params.whenText}` +
+    (params.location ? `. Место: ${params.location}` : '') +
+    `. Пожалуйста, подтвердите.`
 
   return deliverAccessible({
     telegramId: params.telegramId,
