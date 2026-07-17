@@ -8,8 +8,8 @@ services:
     name: medbot-server
     runtime: node
     plan: free
-    buildCommand: npm install && npm run prisma:generate && npm run build && chmod +x start.sh
-    startCommand: ./start.sh
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: node dist/startAll.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -34,6 +34,14 @@ services:
         value: '3'
       - key: SUBSCRIPTION_CURRENCY
         value: 'EUR'
+      - key: TWILIO_ENABLED
+        value: 'false'
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
 
 databases:
   - name: medbot-db
